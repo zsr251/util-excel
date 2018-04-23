@@ -3,6 +3,8 @@ package com.javasoso.util.excel;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -32,6 +34,7 @@ public class UtilTest {
                 RandomStringUtils.random(3, "事发后为女雷电口覅额叫我覅后果就是浪i哦好就离开发到哪里辜负你，新劳动法第三方登录个费"));
             t.setRemark(RandomStringUtils
                 .random(7, "飞机豆浆粉定位饿就饿fsdfsdf房东i几个hirejofjdnbvkfnvewoijfoi1232oj5345k343k"));
+            t.setAmount(new BigDecimal(1234.54));
             System.out.println(t.toString());
             modelList.add(t);
         }
@@ -54,5 +57,4 @@ public class UtilTest {
         System.out.println("读取文件，model共：" + result.size());
         System.out.println("===========================");
     }
-
 }

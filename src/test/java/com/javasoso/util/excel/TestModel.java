@@ -1,5 +1,6 @@
 package com.javasoso.util.excel;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -22,6 +23,9 @@ public class TestModel {
     private Integer age;
     @ExcelIn(4)
     private String remark;
+    @ExcelIn(5)
+    @ExcelOut(value = 5,name = "收入")
+    private BigDecimal amount;
 
     public String getRealName() {
         return realName;
@@ -63,6 +67,14 @@ public class TestModel {
         this.remark = remark;
     }
 
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
+
     @Override
     public String toString() {
         return "TestModel{" +
@@ -71,6 +83,7 @@ public class TestModel {
             ", bD=" + bD +
             ", age=" + age +
             ", remark='" + remark + '\'' +
+            ", amount=" + amount +
             '}';
     }
 }

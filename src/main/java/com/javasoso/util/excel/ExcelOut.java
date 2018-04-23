@@ -32,4 +32,10 @@ public @interface ExcelOut {
      * @return
      */
     String dateFormat() default "yyyy-MM-dd HH:mm:ss" ;
+
+    /**
+     * BigDecimal默认格式
+     * @return
+     */
+    String decimalFormat() default "#.##";
 }

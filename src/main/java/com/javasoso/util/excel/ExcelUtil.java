@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -15,6 +16,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -103,7 +105,7 @@ public class ExcelUtil {
         Row row1 = sheet.createRow(startRow);
         // 定义Cell格式
         CreationHelper creationHelper = workbook.getCreationHelper();
-        Map<Field,CellStyle> cellStyleMap = new HashMap<>();
+        Map<Field, CellStyle> cellStyleMap = new HashMap<>();
         for (Map.Entry<Field, ExcelOut> fieldExcelCellEntry : fieldMap.entrySet()) {
             Field field = fieldExcelCellEntry.getKey();
             //设置可访问私有属性
@@ -114,11 +116,13 @@ public class ExcelUtil {
             if (field.getType().equals(Date.class)) {
                 CellStyle cellStyle = workbook.createCellStyle();
                 // 设置日期格式
-                cellStyle.setDataFormat(creationHelper.createDataFormat().getFormat(fieldExcelCellEntry.getValue().dateFormat()));
-                cellStyleMap.put(field,cellStyle);
+                cellStyle.setDataFormat(creationHelper.createDataFormat()
+                    .getFormat(fieldExcelCellEntry.getValue().dateFormat()));
+                cellStyleMap.put(field, cellStyle);
             }
         }
-
+        // 金额格式化
+        DecimalFormat df = new DecimalFormat();
 
         // 创建正文
         for (int i = 0; i < modelList.size(); i++) {
@@ -135,6 +139,9 @@ public class ExcelUtil {
                     if (field.getType().equals(Date.class)) {
                         cell.setCellValue((Date) field.get(model));
                         cell.setCellStyle(cellStyleMap.get(field));
+                    } else if (field.getType().equals(BigDecimal.class)) {
+                        df.applyPattern(fieldExcelCellEntry.getValue().decimalFormat());
+                        cell.setCellValue(df.format(field.get(model)));
                     } else {
                         cell.setCellValue(String.valueOf(field.get(model)));
                     }
@@ -223,28 +230,15 @@ public class ExcelUtil {
         if (cell == null || paramType == null) {
             return null;
         }
-        try {
-            if (paramType.equals(String.class)) {
-                return cell.getStringCellValue();
-            }
-            if (paramType.equals(Boolean.class) || "boolean".equals(paramType.getName())) {
-                return cell.getBooleanCellValue();
-            }
-            if (paramType.equals(Integer.class) || "int".equals(paramType.getName())) {
-                return Integer.parseInt(cell.getStringCellValue());
-            }
-            if (paramType.equals(Long.class) || "long".equals(paramType.getName())) {
-                return Long.parseLong(cell.getStringCellValue());
-            }
-            if (paramType.equals(Double.class) || "double".equals(paramType.getName())) {
-                return cell.getNumericCellValue();
-            }
-            if (paramType.equals(Date.class)) {
+        if (paramType.equals(Date.class)) {
+            try {
                 return cell.getDateCellValue();
+            } catch (Exception e) {
             }
-            if (paramType.equals(BigDecimal.class)) {
-                return new BigDecimal(cell.getNumericCellValue());
-            }
+        }
+        cell.setCellType(CellType.STRING);
+        try {
+            return TypeUtils.cast(cell.getStringCellValue(), paramType);
         } catch (Exception e) {
             e.printStackTrace();
         }
