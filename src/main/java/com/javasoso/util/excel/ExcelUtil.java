@@ -8,6 +8,7 @@ import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -88,6 +89,20 @@ public class ExcelUtil {
      */
     public static <T> Workbook createWorkBook(List<T> modelList, Class<T> cls, String sheetName,
         Integer startRow) {
+        return createWorkBook(modelList, cls, sheetName, startRow, "");
+    }
+
+    /**
+     * 根据对象列表，获取WorkBook
+     *
+     * @param modelList 对象列表
+     * @param cls 对象类型
+     * @param sheetName sheet名字
+     * @param startRow 第几行开始 0 第一行
+     * @param env 环境 默认环境导出不包含指定环境的列 指定环境导出包含所有默认环境的列
+     */
+    public static <T> Workbook createWorkBook(List<T> modelList, Class<T> cls, String sheetName,
+        Integer startRow, String env) {
         if (sheetName == null || sheetName.length() < 1) {
             sheetName = "sheet";
         }
@@ -105,14 +120,35 @@ public class ExcelUtil {
         Row row1 = sheet.createRow(startRow);
         // 定义Cell格式
         CreationHelper creationHelper = workbook.getCreationHelper();
+        // 格式map
         Map<Field, CellStyle> cellStyleMap = new HashMap<>();
+        // 字段是否显示map
+        Map<Field, Boolean> showMap = new HashMap<>();
         for (Map.Entry<Field, ExcelOut> fieldExcelCellEntry : fieldMap.entrySet()) {
             Field field = fieldExcelCellEntry.getKey();
+            ExcelOut fieldOut = fieldExcelCellEntry.getValue();
+            // 如果是默认环境
+            if (env == null || env.isEmpty()) {
+                // 只有默认环境的列才能显示 指定环境的列不显示
+                if (fieldOut.env().length == 0) {
+                    showMap.put(field, true);
+                } else {
+                    showMap.put(field, false);
+                    continue;
+                }
+            } else {
+                // 如果是指定环境 默认或者包含该环境都显示
+                if (fieldOut.env().length == 0 || arrayContains(fieldOut.env(), env)) {
+                    showMap.put(field, true);
+                } else {
+                    showMap.put(field, false);
+                    continue;
+                }
+            }
             //设置可访问私有属性
             field.setAccessible(true);
             // 设置标题行
-            row1.createCell(fieldExcelCellEntry.getValue().value())
-                .setCellValue(fieldExcelCellEntry.getValue().name());
+            row1.createCell(fieldOut.value()).setCellValue(fieldOut.name());
             if (field.getType().equals(Date.class)) {
                 CellStyle cellStyle = workbook.createCellStyle();
                 // 设置日期格式
@@ -131,6 +167,10 @@ public class ExcelUtil {
             // 设置列值
             for (Map.Entry<Field, ExcelOut> fieldExcelCellEntry : fieldMap.entrySet()) {
                 Field field = fieldExcelCellEntry.getKey();
+                // 如果环境不匹配 则不显示该列
+                if (showMap.get(field) == null || !showMap.get(field)) {
+                    continue;
+                }
                 //设置可访问私有属性
                 field.setAccessible(true);
                 // 设置内容行
@@ -243,5 +283,24 @@ public class ExcelUtil {
             e.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     * 判断数组中是否有指定元素
+     *
+     * @param arr 数组
+     * @param env 指定元素
+     * @return true 包含 false 不包含
+     */
+    private static boolean arrayContains(String[] arr, String env) {
+        if (arr == null || arr.length < 1 || env == null) {
+            return false;
+        }
+        for (int i = 0; i < arr.length; i++) {
+            if (env.equals(arr[i])) {
+                return true;
+            }
+        }
+        return false;
     }
 }

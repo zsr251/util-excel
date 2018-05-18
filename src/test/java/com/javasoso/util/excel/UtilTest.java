@@ -26,7 +26,7 @@ public class UtilTest {
         // 注意不要太多 当心内存撑爆
         int n = 100;
         List<TestModel> modelList = new ArrayList<>();
-        for (int i = 0; i < n-1; i++) {
+        for (int i = 0; i < n - 1; i++) {
             TestModel t = new TestModel();
             t.setAge(i);
             t.setBirD(new Date());
@@ -39,7 +39,7 @@ public class UtilTest {
             modelList.add(t);
         }
         // 生成excel文件
-        Workbook workbook = ExcelUtil.createWorkBook(modelList, TestModel.class, "测试", 0);
+        Workbook workbook = ExcelUtil.createWorkBook(modelList, TestModel.class, "测试", 0, "b");
         File file = new File("./test.xls");
         OutputStream os = new FileOutputStream(file);
         workbook.write(os);

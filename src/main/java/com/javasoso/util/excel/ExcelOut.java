@@ -38,4 +38,12 @@ public @interface ExcelOut {
      * @return
      */
     String decimalFormat() default "#.##";
+
+    /**
+     * 导出环境选择
+     * 默认环境导出不包含指定环境的列
+     * 指定环境导出包含所有默认环境的列
+     * @return
+     */
+    String[] env () default {};
 }
